@@ -1,10 +1,9 @@
 #!/usr/bin/env php
 <?php
-require 'vendor/autoload.php';
 
-use OpenCloud\Rackspace;
-use OpenCloud\Compute\Constants\ServerState;
+require 'devops_include.php';
 use OpenCloud\Compute\Constants\Network;
+use OpenCloud\Compute\Constants\ServerState;
 
 function syntax(){
     print "Syntax:  challenge_2.php <server_name> <server qty: 1 - 3>\n\n";
@@ -18,33 +17,29 @@ if (count($argv)==3) {
     print "\n\nSyntax Invalid. Value must be between 1 - 3\n\n";
 	syntax();
 }
+$keypairs=$compute->listKeypairs();
+$keypair=null;
+while($kp = $keypairs->next()) {
+   if ($kp->name() == $server_name) { $keypair=$kp; }
+} 
+if ( $keypair == null) {
+    $keypair = $compute->keypair();
 
+    try{
+        $keypair->create(array(
+           'name' => $server_name
+        ));
+    } catch (\Guzzle\Http\Exception\BadResponseException $e) {
+        // No! Something failed. Let's find out:
 
-// Get credentials and configuration from ~/.rackspace_cloud_credentials
-// $_SERVER['HOME'] does not exist in Windows, but it does in linux
-// the equivalent in windows that i could see was USERPROFILE
-$inifile = (array_key_exists('HOME', $_SERVER)?$_SERVER['HOME']: $_SERVER['USERPROFILE']). "/.rackspace_cloud_credentials";
+        $responseBody = (string) $e->getResponse()->getBody();
+        $statusCode   = $e->getResponse()->getStatusCode();
+        $headers      = $e->getResponse()->getHeaderLines();
 
-$ini = parse_ini_file($inifile,TRUE);
-if (!$ini) {
-    printf("Unable to load .ini file [%s]\n", INIFILE);
-    exit;
+        echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
+    } 
 }
-
-//print_r($ini);
-
-$client = new Rackspace(Rackspace::US_IDENTITY_ENDPOINT, $ini['Rackspace_Auth']);
-
-$compute = $client->computeService('cloudServersOpenStack', $ini['Server_Info']['dc']);
-//print_r($compute->imageList());
-
-$keypair = $client->computeService()->keypair();
-
-$keypair->create(array(
-   'name' => $server_name
-));
-$output='\n\n';
-$output.= $keypair->getPublicKey();
+$output="\n\nPublic Key:\n".$keypair->getPublicKey();
 
 for ($i = 1; $i<= $server_qty;$i++){
     $server[$i] = $compute->server();
@@ -71,8 +66,6 @@ for ($i = 1; $i<= $server_qty;$i++){
         echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
     }
 }
-
-
 
 for ($i = 1; $i<= $server_qty;$i++){
     $callback = function($server) {

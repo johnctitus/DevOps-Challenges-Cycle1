@@ -1,39 +1,9 @@
 #!/usr/bin/env php
 <?php
 
-//Challenge 1: Write a script that builds a 512MB Cloud Server and returns the root password and IP address for the server.
-
-require 'vendor/autoload.php';
-
-use OpenCloud\Rackspace;
-
-
-// Get credentials and configuration from ~/.rackspace_cloud_credentials
-// $_SERVER['HOME'] does not exist in Windows, but it does in linux
-// the equivalent in windows that i could see was USERPROFILE
-$inifile = (array_key_exists('HOME', $_SERVER)?$_SERVER['HOME']: $_SERVER['USERPROFILE']). "/.rackspace_cloud_credentials";
-
-$ini = parse_ini_file($inifile,TRUE);
-if (!$ini) {
-    printf("Unable to load .ini file [%s]\n", INIFILE);
-    exit;
-}
-
-//print_r($ini);
-
-$client = new Rackspace(Rackspace::US_IDENTITY_ENDPOINT, $ini['Rackspace_Auth']);
-
-$compute = $client->computeService('cloudServersOpenStack', $ini['Server_Info']['dc']);
-//print_r($compute->imageList());
-
-$images = $compute->imageList();
-while ($image = $images->next()) { if (strpos($image->name, 'Ubuntu') !== false) { break; } }
-
-$flavors = $compute->flavorList();
-while ($flavor = $flavors->next()) { if (strpos($flavor->name, '512MB') !== false) { break; } }
-
-
+require 'devops_include.php';
 use OpenCloud\Compute\Constants\Network;
+use OpenCloud\Compute\Constants\ServerState;
 
 $server = $compute->server();
 
@@ -58,7 +28,7 @@ try {
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
 }
 
-use OpenCloud\Compute\Constants\ServerState;
+
 
 $callback = function($server) {
     if (!empty($server->error)) {
