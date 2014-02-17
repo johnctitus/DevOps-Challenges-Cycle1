@@ -21,6 +21,8 @@ $client = new Rackspace(Rackspace::US_IDENTITY_ENDPOINT, $ini['Rackspace_Auth'])
 
 $compute = $client->computeService('cloudServersOpenStack', $ini['Server_Info']['dc']);
 $dns = $client->dnsService();
+$cbs = $client->VolumeService();
+$cloudFiles = $client->objectStoreService('cloudFiles', $ini['Server_Info']['dc']);
 
 
 $server_callback = function($server) {
