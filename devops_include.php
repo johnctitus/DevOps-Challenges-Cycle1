@@ -32,10 +32,10 @@ $server_callback = function($server) {
         exit;
     } else {
         echo sprintf(
-            "Waiting on %s/%-12s %4s%% \n",
+            "Waiting on %s/%-12s %4s \n",
             $server->name(),
             $server->status(),
-            isset($server->progress) ? $server->progress : 0
+            isset($server->progress) ? $server->progress."%" : ""
         );
     }
 };
