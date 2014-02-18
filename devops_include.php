@@ -23,6 +23,7 @@ $compute = $client->computeService('cloudServersOpenStack', $ini['Server_Info'][
 $dns = $client->dnsService();
 $cbs = $client->VolumeService();
 $cloudFiles = $client->objectStoreService('cloudFiles', $ini['Server_Info']['dc']);
+$dbService = $client->DatabaseService('CloudDatabases', $ini['Server_Info']['dc']);
 
 $loadBalancerService = $client->loadBalancerService('cloudLoadBalancers', $ini['Server_Info']['dc']);
 

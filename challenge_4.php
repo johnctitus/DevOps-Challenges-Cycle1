@@ -42,19 +42,9 @@ try{
     $headers      = $e->getResponse()->getHeaderLines();
 
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
-} catch (\Guzzle\Common\Exception\InvalidArgumentException $e) {
-    // No! Something failed. Let's find out:
-
-    $responseBody = (string) $e->getResponse()->getBody();
-    $statusCode   = $e->getResponse()->getStatusCode();
-    $headers      = $e->getResponse()->getHeaderLines();
-
-    echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
-} 
+}
 	
 $output="\n\nCDN URL:\n".$container->getCDN()->getCdnSslUri();
-
-
 
 print $output;
 ?>
