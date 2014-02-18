@@ -24,6 +24,7 @@ $dns = $client->dnsService();
 $cbs = $client->VolumeService();
 $cloudFiles = $client->objectStoreService('cloudFiles', $ini['Server_Info']['dc']);
 
+$loadBalancerService = $client->loadBalancerService('cloudLoadBalancers', $ini['Server_Info']['dc']);
 
 $server_callback = function($server) {
     if (!empty($server->error)) {
