@@ -117,20 +117,43 @@ try{
 } 
 	$instance->waitFor(ServerState::ACTIVE, 600, $server_callback);
 
-/*
+
 for ($i = 1; $i<= $db_qty;$i++){
 
 //create x databases name <instance_name>_db_n
+    $db = $instance->Database();            // new, empty database object
+    try{
+        $db->Create(array('name'=>$instance_name."_db".$i));   // creates the database w/defaults
+    } catch (\Guzzle\Http\Exception\BadResponseException $e) {
+        // No! Something failed. Let's find out:
+        $responseBody = (string) $e->getResponse()->getBody();
+        $statusCode   = $e->getResponse()->getStatusCode();
+        $headers      = $e->getResponse()->getHeaderLines();
+    
+        echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
+    } 
 
-
+//$db->waitFor(ServerState::ACTIVE, 600, $server_callback);
 //create x users name <instance_name>_user_n.  Tie user nn to db nn
+    $user = $instance->User();
 
+    try{
+        $user->Create(array(
+            'name' => "user".$i,
+            'password' => 'S0m3thyngIm@d3uP',      // I made this up; don't bother trying it
+            'databases' => array($instance_name."_db".$i)));
+    } catch (\Guzzle\Http\Exception\BadResponseException $e) {
+        // No! Something failed. Let's find out:
+        $responseBody = (string) $e->getResponse()->getBody();
+        $statusCode   = $e->getResponse()->getStatusCode();
+        $headers      = $e->getResponse()->getHeaderLines();
+
+        echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
+    } 
 
 }
-*/
-
 
 //output instance url
-print "\n\n".$instance->getUrl()."\n";
+//print "\n\n".$instance->getUrl()."\n";
 print $instance->getHostname()."\n";
 ?>
