@@ -92,19 +92,38 @@ try {
 }
 
 //create monitor check
-try {
+/*
+$ips=array();
 
+for($i=0;$i<count($server->addresses['public']);$i++) {
+	$ips['access_ip'.$i.'_v'.$server->address['public'][$i]->version]=$server->address['public'][$i]->address;
+	$ips['public'.$i.'_v'.$server->address['public'][$i]->version]=$server->address['public'][$i]->address;
+}
+for($i=0;$i<count($server->addresses['private']);$i++) {
+		$ips['private'.$i.'_v'.$server->address['private'][$i]->version]=$server->address['private'][$i]->address;
+}
+*/
+
+try {
 	$entity = $monitorService->getEntity();
-	$entity->create(array(
+	$response=$entity->create(array(
 		'label' => $server->name,
 		'agent_id' => $server->id,
-		'ip_addresses' => array(
-			'default' => $server->accessIPv4,
-		),
+		//'ip_addresses' => $ips
+		'ip_addresses' => array('default' => '127.0.0.4'),
+    	
 	));
 	//print_r($entity->getHeaderLines());
   //  $entity->waitFor(ServerState::ACTIVE, 600, $server_callback);
-	
+} catch (\Guzzle\Http\Exception\BadResponseException $e) {
+
+    // No! Something failed. Let's find out:
+
+    $responseBody = (string) $e->getResponse()->getBody();
+    $statusCode   = $e->getResponse()->getStatusCode();
+    $headers      = $e->getResponse()->getHeaderLines();
+    echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
+}	
 	$check = $entity->getCheck();
 	
 	$params = array(
@@ -123,8 +142,15 @@ try {
 // if a Check is launched with these params
 
 	//$r = $check->checkParams($params);
-	$r = $entity->testNewCheckParams($params);
-	$entity->createCheck($params);
+try {
+	$r=$entity->testNewCheckParams($params);
+	
+	echo "Results: ".$r->available."\n"; // Was it available?
+echo "Average: ".$r->average."\n"; // When was it executed?
+echo "Minimum: ".$r->minimum."\n"; // When was it executed?
+echo "Maximum: ".$r->maximum."\n"; // When was it executed?
+
+	$response=$check->create($params);
 	
 } catch (\Guzzle\Http\Exception\BadResponseException $e) {
 
@@ -135,10 +161,7 @@ try {
     $headers      = $e->getResponse()->getHeaderLines();
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
 }
-echo "Results: ".$r->available."\n"; // Was it available?
-echo "Average: ".$r->average."\n"; // When was it executed?
-echo "Minimum: ".$r->minimum."\n"; // When was it executed?
-echo "Maximum: ".$r->maximum."\n"; // When was it executed?
+
 
 
 //create alarm
