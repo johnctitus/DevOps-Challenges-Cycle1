@@ -94,28 +94,38 @@ try {
 //create monitor check
 try {
 
-$monitorEntity = $monitorService->createEntity(array(
+	$entity = $monitorService->getEntity();
+	$entity->create(array(
 		'label' => $server->name,
 		'agent_id' => $server->id,
 		'ip_addresses' => array(
 			'default' => $server->accessIPv4,
 		),
 	));
+	//print_r($entity->getHeaderLines());
+  //  $entity->waitFor(ServerState::ACTIVE, 600, $server_callback);
 	
- //   $monitorEntity->waitFor(ServerState::ACTIVE, 600, $server_callback);
-	
-	$check = $monitorEntity->getCheck();
+	$check = $entity->getCheck();
 	
 	$params = array(
 		'type'   => 'remote.ping',
+		'details' => array(
+			'count'    => '5',
+        ),
+		'monitoring_zones_poll' => array('mzlon', 'mzdfw','mzord'),
+		'period' => '60',
+		'timeout' => '30',
+		'target_alias' => 'default',
 		'label'  => 'Challenge 8 ping Check'
 	);
 
 // You can do a test to see what would happen 
 // if a Check is launched with these params
 
-	$r = $check->checkParams($params);
-	//$r = $entity->testNewCheckParams($params);
+	//$r = $check->checkParams($params);
+	$r = $entity->testNewCheckParams($params);
+	$entity->createCheck($params);
+	
 } catch (\Guzzle\Http\Exception\BadResponseException $e) {
 
     // No! Something failed. Let's find out:
@@ -137,7 +147,7 @@ echo "Maximum: ".$r->maximum."\n"; // When was it executed?
 
 $output.= "\nFQDN: " . $record->name . "\n";
 $output.= "IP: " . $record->data . "\n";
-$output.= "Monitor ID: " . $check->id . "\n";
+$output.= "Monitor ID: " . $check->getId() . "\n";
 
 print $output;
 ?>

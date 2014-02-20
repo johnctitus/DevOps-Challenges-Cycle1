@@ -30,6 +30,7 @@ foreach ($checkTypes as $checkType) {
 $entities = $monitorService->getEntities();	
 foreach ($entities as $ent) {
 	echo $ent->getId()."\n";
+	echo $ent->getParent()->getName()."\n";
 	print_r($ent->createJson());
 	$checks=$ent->getChecks();
 	foreach ($checks as $check) {
