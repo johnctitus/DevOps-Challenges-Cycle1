@@ -103,15 +103,15 @@ for($i=0;$i<count($server->addresses['private']);$i++) {
 		$ips['private'.$i.'_v'.$server->address['private'][$i]->version]=$server->address['private'][$i]->address;
 }
 */
-
+$entity = $monitorService->getEntity();
 try {
-	$entity = $monitorService->getEntity();
+	
 	$response=$entity->create(array(
 		'label' => $server->name,
 		'agent_id' => $server->id,
 		//'ip_addresses' => $ips
-		'ip_addresses' => array('default' => '127.0.0.4'),
-    	
+		'ip_addresses' => array('default' => $server->accessIPv4),
+    	'uri' => $server->url(),
 	));
 	//print_r($entity->getHeaderLines());
   //  $entity->waitFor(ServerState::ACTIVE, 600, $server_callback);
@@ -142,16 +142,40 @@ try {
 // if a Check is launched with these params
 
 	//$r = $check->checkParams($params);
-try {
+//try {
 	$r=$entity->testNewCheckParams($params);
-	
-	echo "Results: ".$r->available."\n"; // Was it available?
+/*	
+echo "Results: ".$r->available."\n"; // Was it available?
 echo "Average: ".$r->average."\n"; // When was it executed?
 echo "Minimum: ".$r->minimum."\n"; // When was it executed?
 echo "Maximum: ".$r->maximum."\n"; // When was it executed?
-
+*/
 	$response=$check->create($params);
-	
+/*	
+} catch (\Guzzle\Http\Exception\BadResponseException $e) {
+
+    // No! Something failed. Let's find out:
+
+    $responseBody = (string) $e->getResponse()->getBody();
+    $statusCode   = $e->getResponse()->getStatusCode();
+    $headers      = $e->getResponse()->getHeaderLines();
+    echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
+}
+*/
+
+
+//create alarm
+//$alarm = $entity->createAlarm();
+$alarm=$entity->getAlarm();
+try {
+$response=$entity->createAlarm(array(
+    'check_id' =>  $check->getId(),
+	'name' => 'Ping Packet Loss',
+    'criteria' => 'if (metric["available"] < 80) { return new AlarmStatus(CRITICAL, "Packet loss is greater than 20%"); } '.
+					'if (metric["available"] < 95) { return new AlarmStatus(WARNING, "Packet loss is greater than 5%"); } '.
+					'return new AlarmStatus(OK, "Packet loss is normal"); ',
+    'notification_plan_id' => 'npTechnicalContactsEmail'
+));
 } catch (\Guzzle\Http\Exception\BadResponseException $e) {
 
     // No! Something failed. Let's find out:
@@ -162,15 +186,12 @@ echo "Maximum: ".$r->maximum."\n"; // When was it executed?
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
 }
 
-
-
-//create alarm
-
 //output FQDN, IP, and monitor ID
 
 $output.= "\nFQDN: " . $record->name . "\n";
 $output.= "IP: " . $record->data . "\n";
+$output.= "Entity ID: " . $entity->getId() . "\n";
 $output.= "Monitor ID: " . $check->getId() . "\n";
-
+$output.= "Alarm ID: " . $alarm->getId() . "\n";
 print $output;
 ?>

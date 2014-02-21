@@ -7,6 +7,7 @@ use OpenCloud\Compute\Constants\ServerState;
 
 $imageList=$compute->imageList();
 $flavorList=$compute->flavorList();
+$serverList=$compute->serverList();
 $checkTypes = $monitorService->getCheckTypes();
 
 print "\n\nImage Types:\n";
@@ -30,7 +31,7 @@ foreach ($checkTypes as $checkType) {
 $entities = $monitorService->getEntities();	
 foreach ($entities as $ent) {
 	echo $ent->getId()."\n";
-	echo $ent->getParent()->getName()."\n";
+	print_r($ent->getMetadata()->toArray());
 	print_r($ent->createJson());
 	$checks=$ent->getChecks();
 	foreach ($checks as $check) {
@@ -39,4 +40,7 @@ foreach ($entities as $ent) {
 	}  
 }
 
+while($server = $serverList->next()) { 
+    print $server->id() . " -> " . $server->name(). " -> " . $server->url()."\n";
+}
 ?>
