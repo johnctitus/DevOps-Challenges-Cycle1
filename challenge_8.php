@@ -103,8 +103,19 @@ for($i=0;$i<count($server->addresses['private']);$i++) {
 		$ips['private'.$i.'_v'.$server->address['private'][$i]->version]=$server->address['private'][$i]->address;
 }
 */
-$entity = $monitorService->getEntity();
-try {
+
+$entity_id='';
+while ($entity_id=='') {
+    print "Searching for Entity...\n";
+    $entities = $monitorService->getEntities();	
+	for ($i = 0; $i < count($entities); $i++) {
+        if ($server->id == $entities[$i]->agent_id){ $entity_id=$entities[$i]->id; print "Entity Found...\n"; }
+    }
+}
+
+print "Getting Entity...\n";
+$entity = $monitorService->getEntity($entity_id);
+/*try {
 	
 	$response=$entity->create(array(
 		'label' => $server->name,
@@ -123,7 +134,8 @@ try {
     $statusCode   = $e->getResponse()->getStatusCode();
     $headers      = $e->getResponse()->getHeaderLines();
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
-}	
+}	*/
+print "Creating Check object...\n";
 	$check = $entity->getCheck();
 	
 	$params = array(
@@ -134,7 +146,7 @@ try {
 		'monitoring_zones_poll' => array('mzlon', 'mzdfw','mzord'),
 		'period' => '60',
 		'timeout' => '30',
-		'target_alias' => 'default',
+		'target_hostname' => $server->accessIPv4,
 		'label'  => 'Challenge 8 ping Check'
 	);
 
@@ -142,7 +154,8 @@ try {
 // if a Check is launched with these params
 
 	//$r = $check->checkParams($params);
-//try {
+try {
+print "Verifying Check Parameters...\n";
 	$r=$entity->testNewCheckParams($params);
 /*	
 echo "Results: ".$r->available."\n"; // Was it available?
@@ -150,8 +163,9 @@ echo "Average: ".$r->average."\n"; // When was it executed?
 echo "Minimum: ".$r->minimum."\n"; // When was it executed?
 echo "Maximum: ".$r->maximum."\n"; // When was it executed?
 */
+print "Creating Check...\n";
 	$response=$check->create($params);
-/*	
+	
 } catch (\Guzzle\Http\Exception\BadResponseException $e) {
 
     // No! Something failed. Let's find out:
@@ -161,13 +175,15 @@ echo "Maximum: ".$r->maximum."\n"; // When was it executed?
     $headers      = $e->getResponse()->getHeaderLines();
     echo sprintf("Status: %s\nBody: %s\nHeaders: %s", $statusCode, $responseBody, implode(', ', $headers));
 }
-*/
+
 
 
 //create alarm
-//$alarm = $entity->createAlarm();
+
+print "Creating Alarm Object...\n";
 $alarm=$entity->getAlarm();
 try {
+print "Creating Alarm...\n";
 $response=$entity->createAlarm(array(
     'check_id' =>  $check->getId(),
 	'name' => 'Ping Packet Loss',
@@ -192,6 +208,6 @@ $output.= "\nFQDN: " . $record->name . "\n";
 $output.= "IP: " . $record->data . "\n";
 $output.= "Entity ID: " . $entity->getId() . "\n";
 $output.= "Monitor ID: " . $check->getId() . "\n";
-$output.= "Alarm ID: " . $alarm->getId() . "\n";
+
 print $output;
 ?>

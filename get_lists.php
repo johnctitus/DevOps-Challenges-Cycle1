@@ -43,4 +43,13 @@ foreach ($entities as $ent) {
 while($server = $serverList->next()) { 
     print $server->id() . " -> " . $server->name(). " -> " . $server->url()."\n";
 }
+
+$entities = $monitorService->getEntities();	
+foreach ($entities as $ent) {
+	//echo $ent->getId()." -> ". $ent->agent_id . "\n";
+	}
+$entities = $monitorService->getEntities();	
+	for ($i = 0; $i < count($entities); $i++) {
+        print  $entities[$i]->id ." -> ". $entities[$i]->agent_id."\n";
+    }
 ?>
